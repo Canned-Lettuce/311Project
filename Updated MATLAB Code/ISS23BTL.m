@@ -383,19 +383,21 @@ reshapedSequencedFDFNineteenMTBFHours = reshape(sequencedFDFNineteenMTBFHours,56
 reshapedSequencedFDFTwentyMTBFHours = reshape(sequencedFDFTwentyMTBFHours,56,12);
 
 
-%11. Failure Density Function Plots:
+%11. Failure Density Function Plots and CDF:
 %Equipment 1 2016
 h = 5;
 figure(1)
-sequencedFDFSixteenMTBFHours(1)
+tiledlayout(1,2)
+%Equipment 1 2016
+nexttile
 fplot(@(t) sequencedFDFSixteenMTBFHours(1)*exp(-sequencedFDFSixteenMTBFHours(1)*t),[0 h],'Linewidth',2);
 hold on
  for i = 2:1:6
-     sequencedFDFSixteenMTBFHours(i)
+%      sequencedFDFSixteenMTBFHours(i)
      fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
  end
   for i = 7:1:12
-     sequencedFDFSixteenMTBFHours(i)
+%      sequencedFDFSixteenMTBFHours(i)
      fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
   end
 hold off
@@ -403,18 +405,37 @@ legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', 
 title('Equipment 1 - Failure Density Function - 2016')
 xlabel('Hours')
 ylabel('Failure Density Function')
+nexttile
+fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(1)*t),[0 h],'Linewidth',2);
+hold on
+ for i = 2:1:6
+%      sequencedFDFSixteenMTBFHours(i)
+     fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
+ end
+  for i = 7:1:12
+%      sequencedFDFSixteenMTBFHours(i)
+     fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
+  end
+hold off
+legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', '\lambda Jun','\lambda Jul', '\lambda Aug', '\lambda Sep', '\lambda Oct', '\lambda Nov', '\lambda Dec')
+title('Equipment 1 - CDF - 2016')
+xlabel('Hours')
+ylabel('1-e^-\lambda*t')
+
 
 %Equipment 2 2016
 figure(2)
-sequencedFDFSixteenMTBFHours(13)
+tiledlayout(1,2)
+%Equipment 2 2016
+nexttile
 fplot(@(t) sequencedFDFSixteenMTBFHours(13)*exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
 hold on
  for i = 14:1:19
-     sequencedFDFSixteenMTBFHours(i)
+%      sequencedFDFSixteenMTBFHours(i)
      fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
  end
   for i = 19:1:24
-     sequencedFDFSixteenMTBFHours(i)
+%      sequencedFDFSixteenMTBFHours(i)
      fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
   end
 hold off
@@ -422,9 +443,25 @@ legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', 
 title('Equipment 2 - Failure Density Function - 2016')
 xlabel('Hours')
 ylabel('Failure Density Function')
+nexttile
+fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
+hold on
+ for i = 14:1:19
+%      sequencedFDFSixteenMTBFHours(i)
+     fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
+ end
+  for i = 19:1:24
+%      sequencedFDFSixteenMTBFHours(i)
+     fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
+  end
+hold off
+legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', '\lambda Jun','\lambda Jul', '\lambda Aug', '\lambda Sep', '\lambda Oct', '\lambda Nov', '\lambda Dec')
+title('Equipment 2 - CDF - 2016')
+xlabel('Hours')
+ylabel('1-e^-\lambda*t')
 
-%Equipment B=3 2016
-figure(3)
+%Equipment 3 2016
+figure(4)
 fplot(@(t) sequencedFDFSixteenMTBFHours(25)*exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
 hold on
  for i = 26:1:30
