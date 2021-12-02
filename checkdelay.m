@@ -30,7 +30,7 @@ for i = 1:56
             figure(i*j)
             hold on
             plot(normal_table(i, 1:end));
-            plot(circshift(normal_table(b, 1:end), -lag_matrix(j, i)));
+            plot(circshift(normal_table(j, 1:end), -lag_matrix(j, i)));
             legend(int2str(i), int2str(j))
             hold off
         end
