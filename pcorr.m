@@ -1,3 +1,5 @@
+%% this function implements a pearson correlation coefficient and outputs
+%  a matrix giving correlation coefficients for every pair of machines
 function r = pcorr(table)
 r = zeros(56,56);
 for i = 1:56
@@ -16,5 +18,5 @@ for i = 1:56
         r(i,j) = N / D;
     end
 end
-imagesc(r)
-caxis([-0.5 0.5])
+%imagesc(r)
+%caxis([-0.5 0.5])
