@@ -1,14 +1,39 @@
 clear all
 close all
-
-%1. Import files into MATLAB
+%%
+%1. Import files into MATLAB:
 Sixteen = readtable('Sixteen.xlsx','Range','A1:E673');
 Seventeen = readtable('Seventeen.xlsx','Range','A1:E673');
 Eighteen = readtable('Eighteen.xlsx','Range','A1:E673');
 Nineteen = readtable('Nineteen.xlsx','Range','A1:E673');
 Twenty = readtable('Twenty.xlsx','Range','A1:E673');
+TwentyOne = readtable('TwentyOne.xlsx','Range','A1:E673');
+%Teams code:
+allMTBF = csvread('allMTBF.csv');
+allMTBFHours = allMTBF/3600;
+allLambdasHours = 1./(allMTBF./3600);
 
-%2. Convert tables to sting array
+%Overall MTBF and Lambda
+for i = 1:1:56
+    overallEquipmentMTBF(i) = sum(allMTBFHours(i,:))/60;
+    overallEquipmentLambda(i) = 1/overallEquipmentMTBF(i);
+end
+
+%Check if math is correct
+overallMTBF = sum(overallEquipmentMTBF)/56;
+overallLambda = 1/overallMTBF;
+
+%Segment Wheel:
+BD1 = 364;
+BD2 = 271;
+BD3 = 280;
+BD4 = 304;
+segmentWheelMTBFDays = (BD1+BD2+BD3+BD4)/4;
+segmentWheelMTBFHours = segmentWheelMTBFDays*24;
+segmentWheelDensityCoefficient = 1/segmentWheelMTBFHours;
+
+%%
+%2. Convert tables to sting array:
 %sixteen
 sixteenEquipment = char(table2array(Sixteen(:,3)));
 sixteenMTBF = char(table2array(Sixteen(:,4)));
@@ -29,8 +54,13 @@ nineteenMTTR = char(table2array(Nineteen(:,5)));
 twentyEquipment = char(table2array(Twenty(:,3)));
 twentyMTBF = char(table2array(Twenty(:,4)));
 twentyMTTR = char(table2array(Twenty(:,5)));
+%twenty
+twentyOneEquipment = char(table2array(TwentyOne(:,3)));
+twentyOneMTBF = char(table2array(TwentyOne(:,4)));
+twentyOneMTTR = char(table2array(TwentyOne(:,5)));
 
-%3. Create Equipment name vector
+%%
+%3. Create Equipment name vector *** Not currently being used:
 equipment = cat(1,sixteenEquipment,seventeenEquipment,eighteenEquipment,nineteenEquipment,twentyEquipment);
 equipment = string(equipment(:,1:3));
 
@@ -142,6 +172,28 @@ for i = 1:672
         else
         end
         twentyMTBFHours(i,1) = duration/3600; %converts seconds to hours
+    end
+end
+
+% TwentyOne
+for i = 1:616
+    duration = 0;
+    for k = 1:length(twentyOneMTBF(i,:))
+        if twentyMTBF(i,k) == 'd'
+            duration = duration + str2num(twentyOneMTBF(i,k-1))*86400;
+        elseif twentyOneMTBF(i,k) == 'h'
+            duration = duration + str2num(twentyOneMTBF(i,k-2))*36000 + str2num(twentyOneMTBF(i,k-1))*3600;
+        elseif twentyOneMTBF(i,k) == 'm'
+            duration = duration + str2num(twentyOneMTBF(i,k-2))*600 + str2num(twentyOneMTBF(i,k-1))*60;
+        elseif twentyOneMTBF(i,k) == 's'
+            if length(twentyOneMTBF(i,1:k)) <= 2
+                duration = duration + str2num(twentyOneMTBF(i,k-1));
+            else
+                duration = duration + str2num(twentyOneMTBF(i,k-2))*10 + str2num(twentyOneMTBF(i,k-1));
+            end
+        else
+        end
+        twentyOneMTBFHours(i,1) = duration/3600; %converts seconds to hours
     end
 end
 
@@ -257,75 +309,44 @@ for i = 1:672
     end
 end
 
-%6. Reshape Matrice 56x12 MTBF
+%TwentyOne ***No use yet
+
+%%
+%5. Reshape Matrice 56x12 MTBF:
 reshapedSixteenMTBFHours = reshape(sixteenMTBFHours,56,12);
 reshapedSeventeenMTBFHours = reshape(seventeenMTBFHours,56,12);
 reshapedEightteenMTBFHours = reshape(eighteenMTBFHours,56,12);
 reshapedNineteenMTBFHours = reshape(nineteenMTBFHours,56,12);
 reshapedTwentyMTBFHours = reshape(twentyMTBFHours,56,12);
+reshapedTwentyOneMTBFHours = reshape(twentyOneMTBFHours,56,11);
 
-%7. Sum MTBF Arrays
+%%
+%6. Complete MTBF matrix
+completeMTBFHours = [allMTBFHours reshapedTwentyOneMTBFHours];
+
+%%
+%7. Sum MTBF Arrays:
 sumSixteenMTBF = sum(sixteenMTBFHours);
 sumSeventeenMTBF = sum(seventeenMTBFHours);
 sumEighteenMTBF = sum(eighteenMTBFHours);
 sumNineteenMTBF = sum(nineteenMTBFHours);
 sumTwentyMTBF = sum(twentyMTBFHours);
+sumTwentyOneMTBF = sum(twentyOneMTBFHours);
 
-%8. Sum MTTR Arrays
+%%
+%8. Sum MTTR Arrays:
 sumSixteenMTTR = sum(sixteenMTTRHours);
 sumSeventeenMTTR = sum(seventeenMTTRHours);
 sumEighteenMTTR = sum(eighteenMTTRHours);
 sumNineteenMTTR = sum(nineteenMTTRHours);
 sumTwentyMTTR = sum(twentyMTTRHours);
+%sumTwentyOneMTTR = sum(twentyOneMTTRHours); ***No use yet:
 
-%9. Equipment Sequenced by Month (Jan-Dec) and Corresponding Failure
+%%
+%9. Equipment Sequenced by Month (Jan-Dec) and Corresponding Failure:
 %Density Function Matrices
 %MTTR
 %2016
-k = 1;
-for i = 1:56
-    for j = 1:12
-        sequencedSixteenMTTRHours(k) = sixteenMTTRHours(i+((j-1)*56));
-        sequencedFDFSixteenMTTRHours(k) = 1/sixteenMTTRHours(i+((j-1)*56));
-        k = k+1;
-    end 
-end
-%2017
-k = 1;
-for i = 1:56
-    for j = 1:12
-        sequencedSeventeenMTTRHours(k) = seventeenMTTRHours(i+((j-1)*56));
-        sequencedFDFSeventeenMTTRHours(k) = 1/seventeenMTTRHours(i+((j-1)*56));
-        k = k+1;
-    end 
-end
-%2018
-k = 1;
-for i = 1:56
-    for j = 1:12
-        sequencedEighteenMTTRHours(k) = eighteenMTTRHours(i+((j-1)*56));
-        sequencedFDFEighteenMTTRHours(k) = 1/eighteenMTTRHours(i+((j-1)*56));
-        k = k+1;
-    end 
-end
-%2019
-k = 1;
-for i = 1:56
-    for j = 1:12
-        sequencedNineteenMTTRHours(k) = nineteenMTTRHours(i+((j-1)*56));
-        sequencedFDFNineteenMTTRHours(k) = 1/nineteenMTTRHours(i+((j-1)*56));
-        k = k+1;
-    end 
-end
-%2020
-k = 1;
-for i = 1:56
-    for j = 1:12
-        sequencedTwentyMTTRHours(k) = twentyMTTRHours(i+((j-1)*56));
-        sequencedFDFTwentyMTTRHours(k) = 1/twentyMTTRHours(i+((j-1)*56));
-        k = k+1;
-    end 
-end
 
 %MTBF
 %2016
@@ -373,20 +394,78 @@ for i = 1:56
         k = k+1;
     end 
 end
+%2021
+k = 1;
+for i = 1:56
+    for j = 1:11
+        sequencedTwentyOneMTBFHours(k) = twentyOneMTBFHours(i+((j-1)*56));
+        sequencedFDFTwentyOneMTBFHours(k) = 1/twentyOneMTBFHours(i+((j-1)*56));
+        k = k+1;
+    end 
+end
 
-%10. Reshape Matrice 56x12 MTBF
+%MTTR
+k = 1;
+for i = 1:56
+    for j = 1:12
+        sequencedSixteenMTTRHours(k) = sixteenMTTRHours(i+((j-1)*56));
+        sequencedFDFSixteenMTTRHours(k) = 1/sixteenMTTRHours(i+((j-1)*56));
+        k = k+1;
+    end 
+end
+%2017
+k = 1;
+for i = 1:56
+    for j = 1:12
+        sequencedSeventeenMTTRHours(k) = seventeenMTTRHours(i+((j-1)*56));
+        sequencedFDFSeventeenMTTRHours(k) = 1/seventeenMTTRHours(i+((j-1)*56));
+        k = k+1;
+    end 
+end
+%2018
+k = 1;
+for i = 1:56
+    for j = 1:12
+        sequencedEighteenMTTRHours(k) = eighteenMTTRHours(i+((j-1)*56));
+        sequencedFDFEighteenMTTRHours(k) = 1/eighteenMTTRHours(i+((j-1)*56));
+        k = k+1;
+    end 
+end
+%2019
+k = 1;
+for i = 1:56
+    for j = 1:12
+        sequencedNineteenMTTRHours(k) = nineteenMTTRHours(i+((j-1)*56));
+        sequencedFDFNineteenMTTRHours(k) = 1/nineteenMTTRHours(i+((j-1)*56));
+        k = k+1;
+    end 
+end
+%2020
+k = 1;
+for i = 1:56
+    for j = 1:12
+        sequencedTwentyMTTRHours(k) = twentyMTTRHours(i+((j-1)*56));
+        sequencedFDFTwentyMTTRHours(k) = 1/twentyMTTRHours(i+((j-1)*56));
+        k = k+1;
+    end 
+end
+%2021 **No use yet
+
+%%
+%10. Reshape Matrice 56x12 MTBF:
 reshapedSequencedSixteenMTBFHours = reshape(sequencedSixteenMTBFHours,12,56)';
 reshapedSequencedFDFSixteenMTBFHours = reshape(sequencedFDFSixteenMTBFHours,12,56)';
 reshapedSequencedFDFSeventeenMTBFHours = reshape(sequencedFDFSeventeenMTBFHours,56,12);
 reshapedSequencedFDFEightteenMTBFHours = reshape(sequencedFDFEighteenMTBFHours,56,12);
 reshapedSequencedFDFNineteenMTBFHours = reshape(sequencedFDFNineteenMTBFHours,56,12);
 reshapedSequencedFDFTwentyMTBFHours = reshape(sequencedFDFTwentyMTBFHours,56,12);
+reshapedSequencedFDFTwentyOneMTBFHours = reshape(sequencedFDFTwentyOneMTBFHours,56,11);
 
-
+%%
 %11. Failure Density Function Plots and CDF:
 %Equipment 1 2016
 h = 5;
-figure(1)
+figure(2)
 tiledlayout(1,2)
 %Equipment 1 2016
 nexttile
@@ -422,60 +501,81 @@ title('Equipment 1 - CDF - 2016')
 xlabel('Hours')
 ylabel('1-e^-\lambda*t')
 
+%%
+%Unused Code
+% %Equipment 2 2016
+% figure(2)
+% tiledlayout(1,2)
+% %Equipment 2 2016
+% nexttile
+% fplot(@(t) sequencedFDFSixteenMTBFHours(13)*exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
+% hold on
+%  for i = 14:1:19
+% %      sequencedFDFSixteenMTBFHours(i)
+%      fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
+%  end
+%   for i = 19:1:24
+% %      sequencedFDFSixteenMTBFHours(i)
+%      fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
+%   end
+% hold off
+% legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', '\lambda Jun','\lambda Jul', '\lambda Aug', '\lambda Sep', '\lambda Oct', '\lambda Nov', '\lambda Dec')
+% title('Equipment 2 - Failure Density Function - 2016')
+% xlabel('Hours')
+% ylabel('Failure Density Function')
+% nexttile
+% fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
+% hold on
+%  for i = 14:1:19
+% %      sequencedFDFSixteenMTBFHours(i)
+%      fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
+%  end
+%   for i = 19:1:24
+% %      sequencedFDFSixteenMTBFHours(i)
+%      fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
+%   end
+% hold off
+% legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', '\lambda Jun','\lambda Jul', '\lambda Aug', '\lambda Sep', '\lambda Oct', '\lambda Nov', '\lambda Dec')
+% title('Equipment 2 - CDF - 2016')
+% xlabel('Hours')
+% ylabel('1-e^-\lambda*t')
 
-%Equipment 2 2016
-figure(2)
-tiledlayout(1,2)
-%Equipment 2 2016
-nexttile
-fplot(@(t) sequencedFDFSixteenMTBFHours(13)*exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
-hold on
- for i = 14:1:19
-%      sequencedFDFSixteenMTBFHours(i)
-     fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
- end
-  for i = 19:1:24
-%      sequencedFDFSixteenMTBFHours(i)
-     fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
-  end
-hold off
-legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', '\lambda Jun','\lambda Jul', '\lambda Aug', '\lambda Sep', '\lambda Oct', '\lambda Nov', '\lambda Dec')
-title('Equipment 2 - Failure Density Function - 2016')
-xlabel('Hours')
-ylabel('Failure Density Function')
-nexttile
-fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
-hold on
- for i = 14:1:19
-%      sequencedFDFSixteenMTBFHours(i)
-     fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
- end
-  for i = 19:1:24
-%      sequencedFDFSixteenMTBFHours(i)
-     fplot(@(t) 1-exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
-  end
-hold off
-legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', '\lambda Jun','\lambda Jul', '\lambda Aug', '\lambda Sep', '\lambda Oct', '\lambda Nov', '\lambda Dec')
-title('Equipment 2 - CDF - 2016')
-xlabel('Hours')
-ylabel('1-e^-\lambda*t')
+% %Equipment 3 2016
+% figure(3)
+% fplot(@(t) sequencedFDFSixteenMTBFHours(25)*exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
+% hold on
+%  for i = 26:1:30
+%      fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
+%  end
+%   for i = 30:1:36
+%      fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
+%   end
+% hold off
+% legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', '\lambda Jun','\lambda Jul', '\lambda Aug', '\lambda Sep', '\lambda Oct', '\lambda Nov', '\lambda Dec')
+% title('Equipment 3 - Failure Density Function - 2016')
+% xlabel('Hours')
+% ylabel('Failure Density Function')
 
-%Equipment 3 2016
-figure(4)
-fplot(@(t) sequencedFDFSixteenMTBFHours(25)*exp(-sequencedFDFSixteenMTBFHours(13)*t),[0 h],'Linewidth',2);
-hold on
- for i = 26:1:30
-     fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],'Linewidth',2);
- end
-  for i = 30:1:36
-     fplot(@(t) sequencedFDFSixteenMTBFHours(i)*exp(-sequencedFDFSixteenMTBFHours(i)*t),[0 h],':','Linewidth',2);
-  end
-hold off
-legend('\lambda Jan','\lambda Feb','\lambda Mar', '\lambda Apr', '\lambda May', '\lambda Jun','\lambda Jul', '\lambda Aug', '\lambda Sep', '\lambda Oct', '\lambda Nov', '\lambda Dec')
-title('Equipment 3 - Failure Density Function - 2016')
-xlabel('Hours')
-ylabel('Failure Density Function')
-
+% figure(4)
+% imagesc(reshapedSequencedSixteenMTBFHours)
+% figure(5)
+% tiledlayout(1,2)
+% nexttile
+% surf(allLambdasHours)
+% colormap(winter)
+% xlabel('Months')
+% title('2016-2020 \lambda - Density Coefficient')
+% set(gca, 'XTick', 6:12:60, 'XTickLabel', {'2016', '2017', '2018', '2019', '2020'})
+% ylabel('Equipment')
+% zlabel('\lambda - Density Coefficient')
+% nexttile
+% surf(allMTBFHours)
+% colormap(winter)
+% xlabel('Months')
+% title('2016-2020 MTBF - Hours')
+% set(gca, 'XTick', 6:12:60, 'XTickLabel', {'2016', '2017', '2018', '2019', '2020'})
+% ylabel('Equipment')
+% zlabel('MTBF - Hours')
 
 
 % %Normalize Arrays
