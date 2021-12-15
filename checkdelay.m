@@ -1,10 +1,11 @@
-
+%% This script identifies shifts and strongly correlated shifted graphs
 table = load("allMTBF.csv");
 table = [table(1:end,1:42),table(1:end,42),table(1:end,44:end)];
 normal_table = normalize(table);
-maxlag = 3;
+maxlag = 3; % Maximum amount of moths that can be shifted by
 lag_matrix = zeros(56, 56);
 coeff_matrix = zeros(56, 56);
+%%Find signals that correlated strongly and how much they are shifted by
 for a = 1:56
     for b = 1:56 
 
@@ -20,9 +21,7 @@ for a = 1:56
         end
     end
 end
-
-%surf(lag_matrix)
-%surf(coeff_matrix)
+%%Display the graphs
 close all
 for i = 1:56
     for j = 1:56
@@ -32,41 +31,10 @@ for i = 1:56
             plot(normal_table(i, 1:end));
             plot(circshift(normal_table(j, 1:end), -lag_matrix(j, i)));
             legend(int2str(i), int2str(j))
+            xlabel('Months')
+            ylabel('Normalized MTBF')
+            title('MTBF of Correlated Machines shifted by up to 3 months')
             hold off
         end
     end
 end
-            
-
-%{
-data = normal_table(5, 1:40);
-%x = normal_table(3, 1:40);
-%[d2,p2] = lpc(x,7);
-%xh = filter(-d2(2:end),1,x);
-%xp = predict(xh, 41:60);
-
-sys = ar(data, 5);
-k = 20;
-p = forecast(sys,data',k);
-%p = normalize(p);
-p = abs(p');
-hold on
-plot(1:60, normal_table(5, 1:60))
-plot(circshift(normal_table(8, 1:end), 0))
-plot(40:59, p)
-hold off
-t = normal_table(5, 40:59);
-corrcoef(t, p)
-%hold on
-%plot(xp(1:60))
-%plot(normal_table(3, 1:end))
-%hold off
-%fa = zeros(1, 60);
-%fb = zeros(1, 60);
-%{
-for i = 1:60
-    fa(i) = makedist('Exponential', 'mu', la(i));
-    pa(i) = pdf('Exponential', fa(i));
-end
-%}
-%}
